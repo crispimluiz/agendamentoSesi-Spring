@@ -8,6 +8,7 @@ import javax.validation.constraints.NotEmpty;
 
 import org.hibernate.validator.constraints.Length;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.senai.agendamento.services.Validation.PessoaInsert;
 
 @PessoaInsert
@@ -30,7 +31,7 @@ public class PessoaNewDTO implements Serializable {
 
 	private char pessoaResponsavel;
 
-	@NotEmpty(message = "Preenchimento obrigatório")
+	@JsonFormat(pattern="dd/MM/yyyy")
 	private Date dataNascimento;
 
 	@NotEmpty(message = "Preenchimento obrigatório")

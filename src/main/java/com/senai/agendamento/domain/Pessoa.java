@@ -34,7 +34,7 @@ public class Pessoa implements Serializable {
 	private String cpf;
 
 	@Column(name = "DATA_NASCIMENTO")
-	@JsonFormat(pattern = "dd/MM/YYYY")
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private Date dataNascimento;
 
 	@Column(unique = true)
@@ -65,6 +65,10 @@ public class Pessoa implements Serializable {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "PERFIS")
 	private Set<Integer> perfis = new HashSet<>();
+
+	@ManyToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "atendimento_id")
+	private Set<Agendamento> agendamento;
 
 	public Pessoa() {
 		addPerfil(Perfil.PESSOA);
@@ -187,6 +191,14 @@ public class Pessoa implements Serializable {
 
 	public void addPerfil(Perfil perfil) {
 		perfis.add(perfil.getCod());
+	}
+
+	public Set<Agendamento> getAgendamento() {
+		return agendamento;
+	}
+
+	public void setAgendamento(Set<Agendamento> agendamento) {
+		this.agendamento = agendamento;
 	}
 
 	@Override

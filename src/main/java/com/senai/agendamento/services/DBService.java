@@ -9,10 +9,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.senai.agendamento.domain.Atendente;
+import com.senai.agendamento.domain.Empresa;
+import com.senai.agendamento.domain.Filial;
 import com.senai.agendamento.domain.Pessoa;
 import com.senai.agendamento.domain.Turma;
 import com.senai.agendamento.domain.enums.Perfil;
 import com.senai.agendamento.repositories.AtendenteRepository;
+import com.senai.agendamento.repositories.EmpresaRepository;
+import com.senai.agendamento.repositories.FilialRepository;
 import com.senai.agendamento.repositories.PessoaRepository;
 import com.senai.agendamento.repositories.TurmaRepository;
 
@@ -30,15 +34,30 @@ public class DBService {
 
 	@Autowired
 	private TurmaRepository turmaRepository;
+	
+	@Autowired
+	private EmpresaRepository empresaRepository;
+	
+	@Autowired
+	private FilialRepository filialRepository;
+
 
 	public void instantiateTesteDataBase() throws ParseException {
 
+		Empresa em1 = new Empresa(null, "Empresa Um");
+		Filial f1 = new Filial(null, "Filial Teste",em1);
+		
+		
+		empresaRepository.saveAll(Arrays.asList(em1));
+		filialRepository.saveAll(Arrays.asList(f1));
+		
+		
 		Atendente a1 = new Atendente(null, "Nome Atendente");
 		Atendente a2 = new Atendente(null, "Nome Atendente 2");
 		atendenteRepository.saveAll(Arrays.asList(a1, a2));
 		
-		Turma t1 = new Turma(null, "Nome da Truma", '1', "Observação");
-		Turma t2 = new Turma(null, "Nome da Truma2", '1', "Observação2");
+		Turma t1 = new Turma(null, "5° SERIE", '1', "Observação");
+		Turma t2 = new Turma(null, "6° SERIE", '1', "Observação2");
 		turmaRepository.saveAll(Arrays.asList(t1, t2));
 				
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYYY"); 

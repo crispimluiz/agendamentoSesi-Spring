@@ -8,6 +8,7 @@ import javax.validation.constraints.NotEmpty;
 
 import org.hibernate.validator.constraints.Length;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.senai.agendamento.domain.Pessoa;
 
 public class PessoaDTO implements Serializable {
@@ -23,6 +24,7 @@ public class PessoaDTO implements Serializable {
 	@Email(message = "CPF Inválido")
 	private String cpf;
 
+	@JsonFormat(pattern="dd/MM/yyyy")
 	private Date dataNascimento;
 
 	@NotEmpty(message = "Preenchimento Obrigatorio")

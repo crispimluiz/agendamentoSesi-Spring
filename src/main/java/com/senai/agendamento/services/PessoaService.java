@@ -35,8 +35,8 @@ public class PessoaService {
 	@Autowired
 	private EmailService emailService;
 
-	public Pessoa find(Integer id) {
-
+	public Pessoa find(Integer id) { 
+		
 		UserSS user = UserService.authenticated();
 		if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
 			throw new AuthorizationException("Acesso negado");
@@ -59,6 +59,15 @@ public class PessoaService {
 		Pessoa newObj = find(obj.getId());
 		updateData(newObj, obj);
 		return repo.save(newObj);
+	}
+	private void updateData(Pessoa newObj, Pessoa obj) {
+		newObj.setNome(obj.getNome());
+		newObj.setEmail(obj.getEmail());
+		newObj.setCpf(obj.getCpf());
+		newObj.setCelular(obj.getCelular());
+		newObj.setDataNascimento(obj.getDataNascimento());
+		newObj.setObservacao(obj.getObservacao());
+		newObj.setPessoaResponsavel(obj.getPessoaResponsavel());
 	}
 
 	public void delete(Integer id) {
@@ -112,9 +121,5 @@ public class PessoaService {
 		return pes;
 	}
 
-	private void updateData(Pessoa newObj, Pessoa obj) {
-		newObj.setNome(obj.getNome());
-		newObj.setEmail(obj.getEmail());
-		newObj.setCpf(obj.getCpf());
-	}
+	
 }

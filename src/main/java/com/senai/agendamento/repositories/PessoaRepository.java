@@ -1,5 +1,7 @@
 package com.senai.agendamento.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,5 +15,7 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Integer>{
 		//Deixa mais rápida e diminiu o lokin
 		@Transactional(readOnly=true)
 		Pessoa findByCpf(String cpf);
-		//findByEmail - Busca e-mail.
+		
+		@Transactional(readOnly=true)
+		Optional<Pessoa> findById(Integer id);
 }
