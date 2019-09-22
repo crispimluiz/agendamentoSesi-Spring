@@ -66,10 +66,6 @@ public class Pessoa implements Serializable {
 	@CollectionTable(name = "PERFIS")
 	private Set<Integer> perfis = new HashSet<>();
 
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "atendimento_id")
-	private Set<Agendamento> agendamento;
-
 	public Pessoa() {
 		addPerfil(Perfil.PESSOA);
 	}
@@ -191,14 +187,6 @@ public class Pessoa implements Serializable {
 
 	public void addPerfil(Perfil perfil) {
 		perfis.add(perfil.getCod());
-	}
-
-	public Set<Agendamento> getAgendamento() {
-		return agendamento;
-	}
-
-	public void setAgendamento(Set<Agendamento> agendamento) {
-		this.agendamento = agendamento;
 	}
 
 	@Override
