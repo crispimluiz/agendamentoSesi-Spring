@@ -5,10 +5,18 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import com.senai.agendamento.domain.TimeBox;
@@ -16,7 +24,12 @@ import com.senai.agendamento.domain.TimeTable;
 import com.senai.agendamento.domain.TimeTableEntry;
 import com.senai.agendamento.domain.dto.TimeBoxDTO;
 import com.senai.agendamento.domain.dto.TimesDTO;
+import com.senai.agendamento.domain.enums.Perfil;
 import com.senai.agendamento.repositories.TimeTableRepository;
+import com.senai.agendamento.security.UserSS;
+import com.senai.agendamento.services.Exception.AuthorizationException;
+import com.senai.agendamento.services.Exception.DataIntegrityException;
+import com.senai.agendamento.services.Exception.ObjectNotFoundException;
 
 @Service
 public class TimeTableService {
@@ -52,6 +65,63 @@ public class TimeTableService {
 		return new TimeBox(null, start, end);
 	}
 	
+	@Transactional
+	public TimeTable insert(TimeTable obj) {
+		obj.setId(null);
+		obj = repository.save(obj);
+		return obj;
+	}
+
+	public TimeTable update(TimeTable obj) {
+		TimeTable newObj = find(obj.getId());
+		updateData(newObj, obj);
+		return repository.save(newObj);
+	}
+	
+	
+	public List<TimeTable> findAll() {
+		return repository.findAll();
+	}
+	
+	public Page<TimeTable> findPage(Integer page, Integer linesPerPage, String orderBy, String direction) {
+		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderBy);
+		return repository.findAll(pageRequest);
+	}
+
+	public TimeTable fromDTO(@Valid TimesDTO objDto) {	
+		return new TimeTable (null, null);
+	}
+
+
+	private void updateData(TimeTable newObj, TimeTable obj) {
+		newObj.setDescription(obj.getDescription());
+		newObj.setId(obj.getId());
+	}
+	
+	@SuppressWarnings("unlikely-arg-type")
+	public TimeTable find(Long id) {
+
+		UserSS user = UserService.authenticated();
+		if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+
+		Optional<TimeTable> obj = repository.findById(id);
+		return obj.orElseThrow(() -> new ObjectNotFoundException(
+				"Objeto não encontrado! Id: " + id + ", Tipo: " + TimeTable.class.getName()));
+	}
+	
+	public void delete(Long id) {
+		find(id);
+		try {
+			repository.deleteById(id);
+		} catch (DataIntegrityViolationException e) {
+			throw new DataIntegrityException("Não é possível excluir");
+		}
+	}
+}
+
+	
 	/*
 	@Transactional(readOnly = true)
 	public List<TimeBox> generateTimeBoxes(IntervalDTO dto) {
@@ -68,4 +138,4 @@ public class TimeTableService {
 				.sorted()
 				.collect(Collectors.toList());	
 	}*/	
-}
+

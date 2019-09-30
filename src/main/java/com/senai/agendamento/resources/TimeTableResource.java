@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,6 +37,17 @@ public class TimeTableResource {
 		LocalDate d1 = LocalDate.parse(startDate);
 		LocalDate d2 = LocalDate.parse(endDate);
 		List<TimesDTO> list = service.times(timeTableId, d1, d2);
+		return ResponseEntity.ok().body(list);
+	}
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public ResponseEntity<List<TimesDTO>> times(
+		@RequestParam(value="startDate") String startDate, 
+		@RequestParam(value="endDate") String endDate, 
+		@PathVariable Long timeTableId) {
+	LocalDate d1 = LocalDate.parse(startDate);
+	LocalDate d2 = LocalDate.parse(endDate);
+	List<TimesDTO> list = service.times(timeTableId, d1, d2);
 		return ResponseEntity.ok().body(list);
 	}
 }
