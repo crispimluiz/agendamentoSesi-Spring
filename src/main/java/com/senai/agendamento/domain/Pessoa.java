@@ -65,6 +65,9 @@ public class Pessoa implements Serializable {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "PERFIS")
 	private Set<Integer> perfis = new HashSet<>();
+	
+	@ManyToMany(mappedBy = "pessoas")
+	private Set<AgendaHorario> horarios = new HashSet<>();
 
 	public Pessoa() {
 		addPerfil(Perfil.PESSOA);

@@ -2,18 +2,26 @@ package com.senai.agendamento.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 
 @Entity
-@Table(name = "tb_time_box")
-public class TimeBox implements Serializable {
+@Table(name = "tb_agenda_horario")
+public class AgendaHorario implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -21,14 +29,24 @@ public class TimeBox implements Serializable {
 	private Long id;
 	private Instant start;
 	private Instant end;
+	
+	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "agenda_id")
+	private Agenda agenda;
 
-	public TimeBox() {
+	@ManyToMany
+	@JoinTable(name = "tb_horario_pessoa", joinColumns = @JoinColumn(name = "horario_id"), inverseJoinColumns = @JoinColumn(name = "pessoa_id"))
+	private Set<Pessoa> pessoas = new HashSet<>();
+
+	public AgendaHorario() {
 	}
 
-	public TimeBox(Long id, Instant start, Instant end) {
+	public AgendaHorario(Long id, Instant start, Instant end, Agenda agenda) {
 		this.id = id;
 		this.start = start;
 		this.end = end;
+		this.agenda = agenda;
 	}
 
 	public Long getId() {
@@ -55,6 +73,14 @@ public class TimeBox implements Serializable {
 		this.end = end;
 	}
 
+	public Agenda getAgenda() {
+		return agenda;
+	}
+
+	public void setAgenda(Agenda agenda) {
+		this.agenda = agenda;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -72,7 +98,7 @@ public class TimeBox implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TimeBox other = (TimeBox) obj;
+		AgendaHorario other = (AgendaHorario) obj;
 		if (end == null) {
 			if (other.end != null)
 				return false;

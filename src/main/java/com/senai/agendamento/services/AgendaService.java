@@ -2,15 +2,13 @@ package com.senai.agendamento.services;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,96 +17,99 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
-import com.senai.agendamento.domain.TimeBox;
-import com.senai.agendamento.domain.TimeTable;
-import com.senai.agendamento.domain.TimeTableEntry;
-import com.senai.agendamento.domain.dto.TimeBoxDTO;
-import com.senai.agendamento.domain.dto.TimesDTO;
+import com.senai.agendamento.domain.Agenda;
+import com.senai.agendamento.domain.AgendaHorario;
+import com.senai.agendamento.domain.AgendaIntervalo;
 import com.senai.agendamento.domain.enums.Perfil;
-import com.senai.agendamento.repositories.TimeTableRepository;
+import com.senai.agendamento.repositories.AgendaHorarioRepository;
+import com.senai.agendamento.repositories.AgendaRepository;
 import com.senai.agendamento.security.UserSS;
 import com.senai.agendamento.services.Exception.AuthorizationException;
 import com.senai.agendamento.services.Exception.DataIntegrityException;
 import com.senai.agendamento.services.Exception.ObjectNotFoundException;
 
 @Service
-public class TimeTableService {
+public class AgendaService {
+	
 	@Autowired
-	private TimeTableRepository repository;
+	private AgendaRepository repository;
 	
-	public TimesDTO times(Long timeTableId, LocalDate localDate) {
+	@Autowired
+	private AgendaHorarioRepository agendaHorarioRepository;
 	
-		TimeTable timeTable = repository.getOne(timeTableId);
+	public List<AgendaHorario> gerarHorarios(Long agendaId, LocalDate localDate) {
+	
+		Agenda agenda = repository.getOne(agendaId);
 		
-		Stream<TimeTableEntry> entries = timeTable.getEntries().stream()
+		Stream<AgendaIntervalo> entries = agenda.getEntries().stream()
 				.filter(e -> e.getDay().equals(localDate.getDayOfWeek())).sorted();
-				
-		TimesDTO times = new TimesDTO(localDate);
-		times.addAllTimeBoxes(entries.map(e -> new TimeBoxDTO(toTimeBox(localDate, e))).collect(Collectors.toList()));
-		return times;
-	}
 
-	public List<TimesDTO> times(Long timeTableId, LocalDate startDate, LocalDate endDate) {
+		List<AgendaHorario> list = new ArrayList<>();
 
-		List<TimesDTO> list = new ArrayList<>();
-		
-		for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1L)) {
-			list.add(times(timeTableId, date));
-		}
-		
+		entries.forEach(e -> list.add(toTimeBox(localDate, e, agenda)));
 		return list;
 	}
+
+	public void gerarHorarios(Long agendaId) {
+		
+		Agenda agenda = repository.getOne(agendaId);
+		LocalDate startDate = agenda.getStartDate();
+		LocalDate endDate = agenda.getEndDate();
+
+		List<AgendaHorario> list = new ArrayList<>();
+		
+		for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1L)) {
+			list.addAll(gerarHorarios(agendaId, date));
+		}
+
+		agendaHorarioRepository.saveAll(list);
+	}
 	
-	private TimeBox toTimeBox(LocalDate localDate, TimeTableEntry entry) {
-		Instant start = localDate.atStartOfDay().toInstant(ZoneOffset.UTC).plusMillis(entry.getStartMillisecond());
-		Instant end = localDate.atStartOfDay().toInstant(ZoneOffset.UTC).plusMillis(entry.getEndMillisecond());
-		return new TimeBox(null, start, end);
+	private AgendaHorario toTimeBox(LocalDate localDate, AgendaIntervalo entry, Agenda agenda) {
+		Instant start = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusMillis(entry.getStartMillisecond());
+		Instant end = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().plusMillis(entry.getEndMillisecond());
+		return new AgendaHorario(null, start, end, agenda);
 	}
 	
 	@Transactional
-	public TimeTable insert(TimeTable obj) {
+	public Agenda insert(Agenda obj) {
 		obj.setId(null);
 		obj = repository.save(obj);
 		return obj;
 	}
 
-	public TimeTable update(TimeTable obj) {
-		TimeTable newObj = find(obj.getId());
+	public Agenda update(Agenda obj) {
+		Agenda newObj = find(obj.getId());
 		updateData(newObj, obj);
 		return repository.save(newObj);
 	}
 	
 	
-	public List<TimeTable> findAll() {
+	public List<Agenda> findAll() {
 		return repository.findAll();
 	}
 	
-	public Page<TimeTable> findPage(Integer page, Integer linesPerPage, String orderBy, String direction) {
+	public Page<Agenda> findPage(Integer page, Integer linesPerPage, String orderBy, String direction) {
 		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderBy);
 		return repository.findAll(pageRequest);
 	}
 
-	public TimeTable fromDTO(@Valid TimesDTO objDto) {	
-		return new TimeTable (null, null);
-	}
-
-
-	private void updateData(TimeTable newObj, TimeTable obj) {
+	private void updateData(Agenda newObj, Agenda obj) {
 		newObj.setDescription(obj.getDescription());
 		newObj.setId(obj.getId());
 	}
 	
 	@SuppressWarnings("unlikely-arg-type")
-	public TimeTable find(Long id) {
+	public Agenda find(Long id) {
 
 		UserSS user = UserService.authenticated();
 		if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
 			throw new AuthorizationException("Acesso negado");
 		}
 
-		Optional<TimeTable> obj = repository.findById(id);
+		Optional<Agenda> obj = repository.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
-				"Objeto não encontrado! Id: " + id + ", Tipo: " + TimeTable.class.getName()));
+				"Objeto não encontrado! Id: " + id + ", Tipo: " + Agenda.class.getName()));
 	}
 	
 	public void delete(Long id) {
@@ -119,18 +120,22 @@ public class TimeTableService {
 			throw new DataIntegrityException("Não é possível excluir");
 		}
 	}
+
+	public AgendaHorario getHorario(Long horarioId) {
+		return agendaHorarioRepository.findById(horarioId).get();
+	}
 }
 
 	
 	/*
 	@Transactional(readOnly = true)
-	public List<TimeBox> generateTimeBoxes(IntervalDTO dto) {
+	public List<AgendaHorario> generateTimeBoxes(IntervalDTO dto) {
 		
 		LocalDateTime dt1 = LocalDateTime.now(ZoneId.systemDefault());
 		
 //		Instant i1 = d1.toEpochSecond(time, offset)
 		
-		TimeTable timeTable = repository.getOne(dto.getTimeTableId());
+		Agenda timeTable = repository.getOne(dto.getTimeTableId());
 
 		return timeTable.getEntries().stream()
 				.filter(e -> e.getStartSecond() >= dto.getStart().getEpochSecond() && e.getEndSecond() <= dto.getEnd().getEpochSecond())

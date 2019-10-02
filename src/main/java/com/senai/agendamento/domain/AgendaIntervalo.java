@@ -1,5 +1,6 @@
 package com.senai.agendamento.domain;
 
+import java.io.Serializable;
 import java.time.DayOfWeek;
 
 import javax.persistence.Entity;
@@ -10,11 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.senai.agendamento.domain.interfaces.TimeEntry;
-
 @Entity
-@Table(name = "tb_time_table_entry")
-public class TimeTableEntry implements TimeEntry  {
+@Table(name = "tb_agenda_intervalo")
+public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo> {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -25,13 +24,13 @@ public class TimeTableEntry implements TimeEntry  {
 	private Long endMillisecond;
 	
 	@ManyToOne
-	@JoinColumn(name = "time_table_id")
-	private TimeTable timeTable;
+	@JoinColumn(name = "agenda_id")
+	private Agenda agenda;
 	
-	public TimeTableEntry() {
+	public AgendaIntervalo() {
 	}
 
-	public TimeTableEntry(Long id, DayOfWeek day, Long startMillisecond, Long endMillisecond, TimeTable timeTable) {
+	public AgendaIntervalo(Long id, DayOfWeek day, Long startMillisecond, Long endMillisecond, Agenda agenda) {
 		if (startMillisecond >= endMillisecond) {
 			throw new IllegalArgumentException("Start time must be less than end time");
 		}
@@ -39,10 +38,10 @@ public class TimeTableEntry implements TimeEntry  {
 		this.day = day;
 		this.startMillisecond = startMillisecond;
 		this.endMillisecond = endMillisecond;
-		this.timeTable = timeTable;
+		this.agenda = agenda;
 	}
 
-	public TimeTableEntry(Long id, DayOfWeek day, Long startHour, Long startMinute, Long endHour, Long endMinute, TimeTable timeTable) {
+	public AgendaIntervalo(Long id, DayOfWeek day, Long startHour, Long startMinute, Long endHour, Long endMinute, Agenda agenda) {
 		Long startMillisecond = startHour * 3600000L + startMinute * 60000L;
 		Long endMillisecond = endHour * 3600000L + endMinute * 60000L;
 		if (startMillisecond >= endMillisecond) {
@@ -52,7 +51,7 @@ public class TimeTableEntry implements TimeEntry  {
 		this.day = day;
 		this.startMillisecond = startMillisecond;
 		this.endMillisecond = endMillisecond;
-		this.timeTable = timeTable;
+		this.agenda = agenda;
 	}
 	
 	public Long getId() {
@@ -63,7 +62,6 @@ public class TimeTableEntry implements TimeEntry  {
 		this.id = id;
 	}
 
-	@Override
 	public DayOfWeek getDay() {
 		return day;
 	}
@@ -72,22 +70,20 @@ public class TimeTableEntry implements TimeEntry  {
 		this.day = day;
 	}
 
-	@Override
 	public Long getStartMillisecond() {
 		return startMillisecond;
 	}
 
-	@Override
 	public Long getEndMillisecond() {
 		return endMillisecond;
 	}
 
-	public TimeTable getTimeTable() {
-		return timeTable;
+	public Agenda getAgenda() {
+		return agenda;
 	}
 
-	public void setTimeTable(TimeTable timeTable) {
-		this.timeTable = timeTable;
+	public void setAgenda(Agenda agenda) {
+		this.agenda = agenda;
 	}
 	
 	@Override
@@ -109,7 +105,7 @@ public class TimeTableEntry implements TimeEntry  {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TimeTableEntry other = (TimeTableEntry) obj;
+		AgendaIntervalo other = (AgendaIntervalo) obj;
 		if (day != other.day)
 			return false;
 		if (endMillisecond == null) {
@@ -128,5 +124,71 @@ public class TimeTableEntry implements TimeEntry  {
 		} else if (!startMillisecond.equals(other.startMillisecond))
 			return false;
 		return true;
+	}
+	
+	public void setStartMillisecond(Long startMillisecond) {
+		if (startMillisecond >= getEndMillisecond()) {
+			throw new IllegalArgumentException("Start time must be less than end time");
+		}
+		setStartMillisecond(startMillisecond);
+	}
+
+	public void setEndMillisecond(Long endMillisecond) {
+		if (getStartMillisecond() >= endMillisecond) {
+			throw new IllegalArgumentException("Start time must be less than end time");
+		}
+		setEndMillisecond(endMillisecond);
+	}
+	
+	public Long getStartSecond() {
+		return getStartMillisecond() / 1000L;
+	}
+
+	public Long getEndSecond() {
+		return getEndMillisecond() / 1000L;
+	}
+	
+	public Long getStartHour() {
+		return getStartMillisecond() / 3600000L;
+	}
+	
+	public Long getStartMinute() {
+		return getStartMillisecond() % 3600000L;
+	}
+
+	public Long getEndHour() {
+		return getEndMillisecond() / 3600000L;
+	}
+	
+	public Long getEndMinute() {
+		return getEndMillisecond() % 3600000L;
+	}
+
+	public void setStart(Long startHour, Long startMinute) {
+		Long startMillisecond = startHour * 3600000L + startMinute * 60000L;
+		setStartMillisecond(startMillisecond);
+	}
+
+	public void setEnd(Long endHour, Long endMinute) {
+		Long endMillisecond = endHour * 3600000L + endMinute * 60000L;
+		setEndMillisecond(endMillisecond);
+	}
+	
+	public boolean conflicts(AgendaIntervalo other) {
+		if (getDay() != other.getDay()) {
+			return false;
+		}
+		if (getEndMillisecond() <= other.getStartMillisecond() || getStartMillisecond() >= other.getEndMillisecond()) {
+			return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public int compareTo(AgendaIntervalo other) {
+		if (getDay().compareTo(other.getDay()) == 0) {
+			return getStartMillisecond().compareTo(other.getStartMillisecond());
+		}
+		return getDay().compareTo(other.getDay());
 	}
 }
