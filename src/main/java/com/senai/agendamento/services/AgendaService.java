@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.senai.agendamento.domain.Agenda;
 import com.senai.agendamento.domain.AgendaHorario;
 import com.senai.agendamento.domain.AgendaIntervalo;
+import com.senai.agendamento.domain.dto.AgendaDTO;
 import com.senai.agendamento.domain.enums.Perfil;
 import com.senai.agendamento.repositories.AgendaHorarioRepository;
 import com.senai.agendamento.repositories.AgendaRepository;
@@ -77,6 +78,10 @@ public class AgendaService {
 		obj = repository.save(obj);
 		return obj;
 	}
+	
+	public Agenda fromDTO(AgendaDTO objDto) {
+		return new Agenda (null, objDto.getDescription(), objDto.getStartDate(), objDto.getEndDate());
+	}
 
 	public Agenda update(Agenda obj) {
 		Agenda newObj = find(obj.getId());
@@ -85,7 +90,7 @@ public class AgendaService {
 	}
 	
 	
-	public List<Agenda> findAll() {
+	public List<Agenda> findAllAgenda() {
 		return repository.findAll();
 	}
 	
