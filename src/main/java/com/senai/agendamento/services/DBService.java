@@ -93,13 +93,14 @@ public class DBService {
 			                                                                          
 		AgendaIntervalo e1 = new AgendaIntervalo(null, DayOfWeek.MONDAY, 8L, 0L, 9L, 0L, h1);
 		AgendaIntervalo e2 = new AgendaIntervalo(null, DayOfWeek.MONDAY, 9L, 0L, 10L, 0L, h1);
-		AgendaIntervalo e3 = new AgendaIntervalo(null, DayOfWeek.MONDAY, 10L, 0L, 11L, 0L, h1);
-		AgendaIntervalo e4 = new AgendaIntervalo(null, DayOfWeek.MONDAY, 11L, 0L, 12L, 0L, h1);
+		AgendaIntervalo e3 = new AgendaIntervalo(null, DayOfWeek.TUESDAY, 10L, 0L, 11L, 0L, h1);
+		AgendaIntervalo e4 = new AgendaIntervalo(null, DayOfWeek.TUESDAY, 11L, 0L, 12L, 0L, h1);
+		AgendaIntervalo e5 = new AgendaIntervalo(null, DayOfWeek.TUESDAY, 12L, 0L, 12L, 20L, h1);
 
 		agendaRepository.save(h1);
-		agendaIntervaloRepository.saveAll(Arrays.asList(e1, e2, e3, e4));
+		agendaIntervaloRepository.saveAll(Arrays.asList(e1, e2, e3, e4, e5));
 		
-		//AgendaHorario tb1 = new AgendaHorario(null, DayOfWeek.MONDAY, 18L, 45L, 19L, 30L, t1);
+		//AgendaHorario tb1 = new AgendaHorario(null, DayOfWeekEnum.MONDAY, 18L, 45L, 19L, 30L, t1);
 		//timeBoxRepository.save(tb1);
 		
 		LocalDateTime dt1 = LocalDateTime.now(ZoneId.systemDefault());

@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
@@ -21,8 +22,10 @@ import com.senai.agendamento.domain.Agenda;
 import com.senai.agendamento.domain.AgendaHorario;
 import com.senai.agendamento.domain.AgendaIntervalo;
 import com.senai.agendamento.domain.dto.AgendaDTO;
+import com.senai.agendamento.domain.dto.AgendaIntervaloDTO;
 import com.senai.agendamento.domain.enums.Perfil;
 import com.senai.agendamento.repositories.AgendaHorarioRepository;
+import com.senai.agendamento.repositories.AgendaIntervaloRepository;
 import com.senai.agendamento.repositories.AgendaRepository;
 import com.senai.agendamento.security.UserSS;
 import com.senai.agendamento.services.Exception.AuthorizationException;
@@ -37,6 +40,10 @@ public class AgendaService {
 	
 	@Autowired
 	private AgendaHorarioRepository agendaHorarioRepository;
+	
+	@Autowired
+	private AgendaIntervaloRepository agendaIntervaloRepository;
+	
 	
 	public List<AgendaHorario> gerarHorarios(Long agendaId, LocalDate localDate) {
 	
@@ -90,7 +97,7 @@ public class AgendaService {
 	}
 	
 	
-	public List<Agenda> findAllAgenda() {
+	public List<Agenda> findAll() {
 		return repository.findAll();
 	}
 	
@@ -128,6 +135,16 @@ public class AgendaService {
 
 	public AgendaHorario getHorario(Long horarioId) {
 		return agendaHorarioRepository.findById(horarioId).get();
+	}
+
+	public List<AgendaIntervaloDTO> inserirIntervalos(Long agendaId, List<AgendaIntervaloDTO> list) {
+		Agenda agenda = repository.getOne(agendaId);
+		List<AgendaIntervalo> listEntities = list.stream().map(dto -> dto.toEntity()).collect(Collectors.toList());
+		for (AgendaIntervalo i : listEntities) {
+			i.setAgenda(agenda);
+		}
+		agendaIntervaloRepository.saveAll(listEntities);
+		return listEntities.stream().map(e -> new AgendaIntervaloDTO(e)).collect(Collectors.toList());
 	}
 }
 

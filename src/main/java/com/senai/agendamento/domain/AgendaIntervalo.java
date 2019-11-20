@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "tb_agenda_intervalo")
 public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo> {
@@ -22,11 +24,12 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 	private DayOfWeek day;
 	private Long startMillisecond;
 	private Long endMillisecond;
-	
+
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "agenda_id")
 	private Agenda agenda;
-	
+
 	public AgendaIntervalo() {
 	}
 
@@ -41,7 +44,8 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 		this.agenda = agenda;
 	}
 
-	public AgendaIntervalo(Long id, DayOfWeek day, Long startHour, Long startMinute, Long endHour, Long endMinute, Agenda agenda) {
+	public AgendaIntervalo(Long id, DayOfWeek day, Long startHour, Long startMinute, Long endHour, Long endMinute,
+			Agenda agenda) {
 		Long startMillisecond = startHour * 3600000L + startMinute * 60000L;
 		Long endMillisecond = endHour * 3600000L + endMinute * 60000L;
 		if (startMillisecond >= endMillisecond) {
@@ -53,7 +57,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 		this.endMillisecond = endMillisecond;
 		this.agenda = agenda;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -85,7 +89,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 	public void setAgenda(Agenda agenda) {
 		this.agenda = agenda;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -125,7 +129,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 			return false;
 		return true;
 	}
-	
+
 	public void setStartMillisecond(Long startMillisecond) {
 		if (startMillisecond >= getEndMillisecond()) {
 			throw new IllegalArgumentException("Start time must be less than end time");
@@ -139,7 +143,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 		}
 		setEndMillisecond(endMillisecond);
 	}
-	
+
 	public Long getStartSecond() {
 		return getStartMillisecond() / 1000L;
 	}
@@ -147,21 +151,21 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 	public Long getEndSecond() {
 		return getEndMillisecond() / 1000L;
 	}
-	
+
 	public Long getStartHour() {
 		return getStartMillisecond() / 3600000L;
 	}
-	
+
 	public Long getStartMinute() {
-		return getStartMillisecond() % 3600000L;
+		return getStartMillisecond() % 3600000L / 60000L;
 	}
 
 	public Long getEndHour() {
 		return getEndMillisecond() / 3600000L;
 	}
-	
+
 	public Long getEndMinute() {
-		return getEndMillisecond() % 3600000L;
+		return getEndMillisecond() % 3600000L / 60000L;
 	}
 
 	public void setStart(Long startHour, Long startMinute) {
@@ -173,7 +177,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 		Long endMillisecond = endHour * 3600000L + endMinute * 60000L;
 		setEndMillisecond(endMillisecond);
 	}
-	
+
 	public boolean conflicts(AgendaIntervalo other) {
 		if (getDay() != other.getDay()) {
 			return false;
@@ -183,7 +187,7 @@ public class AgendaIntervalo implements Serializable, Comparable<AgendaIntervalo
 		}
 		return true;
 	}
-	
+
 	@Override
 	public int compareTo(AgendaIntervalo other) {
 		if (getDay().compareTo(other.getDay()) == 0) {

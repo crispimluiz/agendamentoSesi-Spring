@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "tb_agenda")
 public class Agenda {
@@ -21,6 +23,7 @@ public class Agenda {
 	private LocalDate startDate;
 	private LocalDate endDate;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "agenda")
 	private List<AgendaIntervalo> entries = new ArrayList<>();
 	
